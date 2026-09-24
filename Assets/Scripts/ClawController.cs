@@ -7,6 +7,10 @@ public class ClawController : MonoBehaviour
     public float leftLimit = -5f;
     public float rightLimit = 8f;
 
+    [Header("Depth Limits (Z)")]
+    public float backLimit = -5f;    // задн€€ граница
+    public float frontLimit = 5f;    // передн€€ граница
+
     [Header("Vertical Movement")]
     public float topY = 35f;
     public float bottomY = 25f;
@@ -50,10 +54,19 @@ public class ClawController : MonoBehaviour
 
     void HandleIdle()
     {
-        float horizontal = Input.GetAxis("Horizontal");
+        float horizontal = Input.GetAxis("Horizontal"); 
+        float vertical = Input.GetAxis("Vertical");  
+
         Vector3 pos = transform.position;
+
+        // ƒвижение по X (влево-вправо)
         pos.x += horizontal * moveSpeed * Time.deltaTime;
         pos.x = Mathf.Clamp(pos.x, leftLimit, rightLimit);
+
+        // ƒвижение по Z (вперЄд-назад)
+        pos.z += vertical * moveSpeed * Time.deltaTime;
+        pos.z = Mathf.Clamp(pos.z, backLimit, frontLimit);
+
         transform.position = pos;
 
         if (Input.GetKeyDown(KeyCode.Space))
