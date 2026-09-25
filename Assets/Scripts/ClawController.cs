@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 public class ClawController : MonoBehaviour
 {
@@ -32,6 +33,8 @@ public class ClawController : MonoBehaviour
     private float waitTimer = 0f;
     private GameObject grabbedToy = null;
     private Vector3 startPosition;
+    private static int wonToysCount = 0;
+    private bool isWinAnimating = false;
 
     void Start()
     {
@@ -164,13 +167,16 @@ public class ClawController : MonoBehaviour
     {
         if (grabbedToy != null)
         {
+            // Отпускаем игрушку — она физически падает в корзину
             grabbedToy.transform.SetParent(null);
             Rigidbody rb = grabbedToy.GetComponent<Rigidbody>();
             if (rb != null) rb.isKinematic = false;
+
             grabbedToy = null;
-            Debug.Log("Игрушка сброшена в корзину!");
+            waitTimer = 0f;
         }
 
+        // Ждём немного, потом возвращаемся (сама анимация запустится по триггеру)
         waitTimer += Time.deltaTime;
         if (waitTimer >= 0.5f)
         {
@@ -196,6 +202,49 @@ public class ClawController : MonoBehaviour
         {
             Gizmos.color = Color.yellow;
             Gizmos.DrawWireSphere(grabPoint.position, grabRadius);
+        }
+    }
+
+    void DropToyToFloor(GameObject toy)
+    {
+        if (toy == null) return;  // защита от null
+
+        // Ставим игрушки в ряд справа от автомата
+        Vector3 dropPos = new Vector3(5f + wonToysCount * 0.8f, 1f, -20f);
+        dropPos.x = Random.Range(15f, 30f);
+        //dropPos.z += Random.Range(-0.2f, 0.2f);
+
+        toy.transform.position = dropPos;
+        toy.transform.rotation = Quaternion.Euler(0, Random.Range(0, 360), 0);
+        //toy.transform.localScale = Vector3.one;
+
+        Rigidbody rb = toy.GetComponent<Rigidbody>();
+        if (rb != null) rb.isKinematic = false;
+
+        wonToysCount++;
+    }
+
+    public void OnToyLandedInBasket(GameObject toy)
+    {
+        if (isWinAnimating) return;  // защита от повторов
+        isWinAnimating = true;
+
+        Vector3 originalScale = toy.transform.localScale;
+
+        WinAnimation winAnim = FindObjectOfType<WinAnimation>();
+        if (winAnim != null)
+        {
+            StartCoroutine(winAnim.PlayWinAnimation(toy, () =>
+            {
+                toy.transform.localScale = originalScale;
+                DropToyToFloor(toy);
+                isWinAnimating = false;
+            }));
+        }
+        else
+        {
+            DropToyToFloor(toy);
+            isWinAnimating = false;
         }
     }
 }
