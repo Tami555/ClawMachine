@@ -35,14 +35,42 @@ public class ClawController : MonoBehaviour
     private Vector3 startPosition;
     private static int wonToysCount = 0;
     private bool isWinAnimating = false;
+    private GameTimer gameTimer;
 
     void Start()
     {
         startPosition = transform.position;
+        gameTimer = FindObjectOfType<GameTimer>();
     }
 
     void Update()
     {
+        // Если время вышло — надо вернуть кран, НО только если он не несёт игрушку
+        if (gameTimer != null && !gameTimer.CanPlay())
+        {
+            bool isCarryingToy = grabbedToy != null;
+
+            // Если кран несёт игрушку — даём ему доехать до корзины и сбросить
+            if (isCarryingToy)
+            {
+                // Если он ещё не в MovingToBasket — отправляем туда
+                if (state != ClawState.MovingToBasket
+                    && state != ClawState.Dropping
+                    && state != ClawState.MovingUp)  // MovingUp тоже нужен — чтобы поднять игрушку наверх
+                {
+                    state = ClawState.MovingUp;
+                }
+            }
+            else
+            {
+                // Игрушки нет — можно сразу домой
+                if (state != ClawState.Idle && state != ClawState.Returning)
+                {
+                    state = ClawState.Returning;
+                }
+            }
+        }
+
         switch (state)
         {
             case ClawState.Idle: HandleIdle(); break;
@@ -57,23 +85,28 @@ public class ClawController : MonoBehaviour
 
     void HandleIdle()
     {
-        float horizontal = Input.GetAxis("Horizontal"); 
-        float vertical = Input.GetAxis("Vertical");  
+        if (gameTimer == null || !gameTimer.CanPlay()) return;  // игра не активна — кран стоит
+
+        float horizontal = Input.GetAxis("Horizontal");
+        float vertical = Input.GetAxis("Vertical");
 
         Vector3 pos = transform.position;
-
-        // Движение по X (влево-вправо)
         pos.x += horizontal * moveSpeed * Time.deltaTime;
         pos.x = Mathf.Clamp(pos.x, leftLimit, rightLimit);
-
-        // Движение по Z (вперёд-назад)
         pos.z += vertical * moveSpeed * Time.deltaTime;
         pos.z = Mathf.Clamp(pos.z, backLimit, frontLimit);
-
         transform.position = pos;
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
+            // Проверка на доллар
+            HandItems hand = FindObjectOfType<HandItems>();
+            if (hand != null && hand.IsDollarInHand()) return;
+
+            // Проверка: одна попытка за игру
+            if (gameTimer.HasGrabbed()) return;
+
+            gameTimer.MarkGrabbed();  // помечаем, что попытка использована
             state = ClawState.MovingDown;
             waitTimer = 0f;
         }
