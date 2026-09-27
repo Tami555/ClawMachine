@@ -55,7 +55,7 @@ public class GameTimer : MonoBehaviour
         Debug.Log("Игра началась!");
     }
 
-    void EndGame()
+    public void EndGame()
     {
         isGameRunning = false;
         timeLeft = 0f;

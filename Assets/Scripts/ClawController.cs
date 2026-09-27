@@ -87,7 +87,7 @@ public class ClawController : MonoBehaviour
     {
         if (gameTimer == null || !gameTimer.CanPlay()) return;  // игра не активна — кран стоит
 
-        float horizontal = Input.GetAxis("Horizontal");
+        float horizontal = -Input.GetAxis("Horizontal");
         float vertical = Input.GetAxis("Vertical");
 
         Vector3 pos = transform.position;
@@ -225,6 +225,12 @@ public class ClawController : MonoBehaviour
         if (Vector3.Distance(transform.position, target) < 0.05f)
         {
             state = ClawState.Idle;
+
+            // Если игра идёт и попытка уже потрачена — завершаем игру досрочно
+            if (gameTimer != null && gameTimer.CanPlay() && gameTimer.HasGrabbed())
+            {
+                gameTimer.EndGame();  // нужно сделать публичным в GameTimer
+            }
         }
     }
 
