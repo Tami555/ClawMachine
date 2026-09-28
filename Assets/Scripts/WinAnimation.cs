@@ -30,6 +30,7 @@ public class WinAnimation : MonoBehaviour
     // Публичный метод — вызывается из ClawController при победе
     public IEnumerator PlayWinAnimation(GameObject toy, System.Action onFinish)
     {
+        SoundManager.Instance.PlayWin();
         // 1. Запоминаем оригинальные параметры игрушки
         Vector3 originalScale = toy.transform.localScale;
         Quaternion originalRotation = toy.transform.rotation;

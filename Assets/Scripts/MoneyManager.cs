@@ -34,6 +34,7 @@ public class MoneyManager : MonoBehaviour
             if (hand != null && hand.IsDollarInHand() && !isHidingDollar)
             {
                 StartCoroutine(InsertDollar());
+                SoundManager.Instance.PlayInsertCoin();
             }
         }
     }

@@ -38,6 +38,7 @@ public class HandItems : MonoBehaviour
         if (wallet != null) wallet.SetActive(currentState == 1);
         if (dollar != null) dollar.SetActive(currentState == 2);
         Debug.Log("Состояние руки: " + currentState);
+        SoundManager.Instance.PlayWallet();
     }
 
     void FollowCamera()
